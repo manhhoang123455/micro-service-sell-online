@@ -8,6 +8,21 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
+  product-service_internal_models.CreateProductInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    required:
+    - name
+    - price
+    - stock
+    type: object
   product-service_internal_models.Image:
     properties:
       createdAt:
@@ -46,6 +61,22 @@ definitions:
       updatedAt:
         type: string
     type: object
+  product-service_internal_models.UpdateProductInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    required:
+    - description
+    - name
+    - price
+    - stock
+    type: object
   utils.ErrorResponse:
     properties:
       message:
@@ -63,6 +94,26 @@ info:
   version: "1.0"
 paths:
   /products:
+    get:
+      consumes:
+      - application/json
+      description: Get all products with details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/product-service_internal_models.Product'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Get all products
+      tags:
+      - product
     post:
       consumes:
       - application/json
@@ -73,7 +124,7 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/product-service_internal_models.Product'
+          $ref: '#/definitions/product-service_internal_models.CreateProductInput'
       produces:
       - application/json
       responses:
@@ -170,7 +221,7 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/product-service_internal_models.Product'
+          $ref: '#/definitions/product-service_internal_models.UpdateProductInput'
       produces:
       - application/json
       responses:

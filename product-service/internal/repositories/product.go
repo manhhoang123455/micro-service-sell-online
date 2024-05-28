@@ -34,11 +34,39 @@ func (r *ProductRepository) DeleteProduct(id uint) error {
 	return r.db.Delete(&models.Product{}, id).Error
 }
 
-func (r *ProductRepository) GetProducts() ([]models.Product, error) {
+func (r *ProductRepository) GetProducts(name, sortBy, order string) ([]models.Product, error) {
 	var products []models.Product
-	err := r.db.Preload("Images").Find(&products).Error
+	query := r.db.Preload("Images")
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+name+"%")
+
+	}
+	if sortBy != "" {
+		if order != "asc" && order != "desc" {
+			order = "asc"
+		}
+		query = query.Order(sortBy + " " + order)
+	}
+	err := query.Find(&products).Error
 	if err != nil {
 		return nil, err
 	}
 	return products, nil
+}
+
+func (r *ProductRepository) DeleteImage(productId, imageId uint) error {
+	return r.db.Where("id = ? AND product_id = ?", imageId, productId).Delete(&models.Image{}).Error
+}
+
+func (r *ProductRepository) GetImageById(productId, imageId uint) (*models.Image, error) {
+	var images models.Image
+	err := r.db.Where("id = ? AND product_id = ?", imageId, productId).First(&images).Error
+	if err != nil {
+		return nil, err
+	}
+	return &images, nil
+}
+
+func (r *ProductRepository) CreateImage(image *models.Image) error {
+	return r.db.Create(image).Error
 }

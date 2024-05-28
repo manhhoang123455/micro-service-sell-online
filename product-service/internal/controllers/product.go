@@ -49,6 +49,29 @@ func (pc *ProductController) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
+// GetListProducts godoc
+// @Summary Get all products
+// @Description Get all products with details
+// @Tags product
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Product
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products [get]
+func (pc *ProductController) GetListProducts(c *gin.Context) {
+	name := c.Query("name")
+	sortBy := c.Query("sort_by")
+	order := c.Query("order")
+	products, err := pc.productService.GetProducts(name, sortBy, order)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to get products")
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+
+}
+
 // GetProductByID godoc
 // @Summary Get a product by ID
 // @Description Get product details by ID
@@ -137,4 +160,70 @@ func (pc *ProductController) DeleteProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+}
+
+// AddImage godoc
+// @Summary Upload an image
+// @Description Upload an image for a product
+// @Tags product
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param images formData file true "Images"
+// @Success 200 {object} models.Product
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products/{id}/images [post]
+func (pc *ProductController) AddImage(c *gin.Context) {
+	productId, _ := strconv.Atoi(c.Param("id"))
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid file")
+		return
+	}
+
+	image, err := pc.productService.AddImage(uint(productId), file)
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, image)
+}
+
+// DeleteImage godoc
+// @Summary Delete an image
+// @Description Delete an image by ID
+// @Tags product
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param id_img path int true "Image ID"
+// @Success 204 {object} map[string]string
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products/{id}/images/{id_img} [delete]
+func (pc *ProductController) DeleteImage(c *gin.Context) {
+	productId, _ := strconv.Atoi(c.Param("id"))
+	imageId, _ := strconv.Atoi(c.Param("id_img"))
+	// Check if product exists
+	_, err := pc.productService.GetProductByID(uint(productId))
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "Product not found")
+		return
+	}
+	// Check if image exists
+	_, err = pc.productService.GetImageByProducts(uint(productId), uint(imageId))
+	if err != nil {
+		utils.SendErrorResponse(c, http.StatusNotFound, "images not found")
+		return
+	}
+	if err := pc.productService.DeleteImage(uint(productId), uint(imageId)); err != nil {
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to delete image")
+		return
+	}
+
+	utils.SendSuccessResponse(c, http.StatusNoContent, "Image deleted successfully")
 }

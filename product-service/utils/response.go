@@ -12,3 +12,7 @@ type ErrorResponse struct {
 func SendErrorResponse(c *gin.Context, status int, message string) {
 	c.JSON(status, ErrorResponse{Status: status, Message: message})
 }
+
+func SendSuccessResponse(c *gin.Context, status int, data interface{}) {
+	c.JSON(status, data)
+}

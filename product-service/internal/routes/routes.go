@@ -16,8 +16,13 @@ func RegisterRoutes(r *gin.Engine) {
 	productRoutes := r.Group("/products")
 	{
 		productRoutes.POST("", productController.CreateProduct)
-		productRoutes.GET("", productController.GetProductByID)
+		productRoutes.GET("", productController.GetListProducts)
 		productRoutes.GET("/:id", productController.GetProductByID)
 		productRoutes.PUT("/:id", productController.UpdateProduct)
+	}
+	ImagesRoutes := r.Group("/products/:id/images")
+	{
+		ImagesRoutes.POST("", productController.AddImage)
+		ImagesRoutes.DELETE("/:id_img", productController.DeleteImage)
 	}
 }
