@@ -4,6 +4,7 @@ import "strings"
 
 const (
 	// 4xx
+
 	NoTokenFound                           = 400001
 	BearerTokenNotInProperFormat           = 400002
 	TokenInvalid                           = 400003
@@ -13,6 +14,7 @@ const (
 	IdInvalid                              = 400007
 	ImageFileNameLimitOf100                = 400008
 	ImageFileSizeLimitOf5MB                = 400009
+	InvalidRequest                         = 400010
 	TokenDoesNotExistOrExpired             = 401001
 	InvalidCredential                      = 401002
 	TokenContainsAnInvalidNumberOfSegments = 401003
@@ -42,7 +44,7 @@ var (
 		401004: "Failed to logout.",
 		401005: "Record not found.",
 		429001: "Too many requests.",
-
+		400010: "Invalid request.",
 		// 5xx
 		500001: "Signature failed.",
 	}

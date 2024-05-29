@@ -3,6 +3,7 @@ package repositories
 import (
 	"gorm.io/gorm"
 	"order-service/internal/models"
+	"time"
 )
 
 type OrderRepository struct {
@@ -17,16 +18,29 @@ func (r *OrderRepository) Create(order *models.Order) error {
 	return r.db.Create(order).Error
 }
 
-func (r *OrderRepository) ListOrders(page, limit int) ([]models.Order, int64, error) {
+func (r *OrderRepository) ListOrders(page, limit int, userID uint, startDate, endDate time.Time) ([]models.Order, int64, error) {
 	var orders []models.Order
 	var total int64
 
-	offset := (page - 1) * limit
-	if err := r.db.Model(&models.Order{}).Count(&total).Error; err != nil {
+	query := r.db.Model(&models.Order{}).Preload("Items")
+
+	if userID != 0 {
+		query = query.Where("user_id = ?", userID)
+	}
+
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	} else if !startDate.IsZero() {
+		query = query.Where("created_at >= ?", startDate)
+	} else if !endDate.IsZero() {
+		query = query.Where("created_at <= ?", endDate)
+	}
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := r.db.Offset(offset).Limit(limit).Preload("Items").Find(&orders).Error; err != nil {
+	offset := (page - 1) * limit
+	if err := query.Offset(offset).Limit(limit).Find(&orders).Error; err != nil {
 		return nil, 0, err
 	}
 
